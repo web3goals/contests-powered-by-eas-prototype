@@ -5,6 +5,11 @@ interface ChainConfig {
   contracts: {
     profile: `0x${string}`;
   };
+  eas: {
+    contract: `0x${string}`;
+    contestSchemaUid: `0x${string}`;
+    graphQl: string;
+  };
 }
 
 /**
@@ -12,7 +17,12 @@ interface ChainConfig {
  */
 export function getSupportedChainConfigs(): ChainConfig[] {
   const chainConfigs: ChainConfig[] = [];
-  if (process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS) {
+  if (
+    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS &&
+    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS &&
+    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID &&
+    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL
+  ) {
     chainConfigs.push({
       chain: {
         ...sepolia,
@@ -28,6 +38,13 @@ export function getSupportedChainConfigs(): ChainConfig[] {
       contracts: {
         profile: process.env
           .NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS as `0x${string}`,
+      },
+      eas: {
+        contract: process.env
+          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS as `0x${string}`,
+        contestSchemaUid: process.env
+          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID as `0x${string}`,
+        graphQl: process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL,
       },
     });
   }
