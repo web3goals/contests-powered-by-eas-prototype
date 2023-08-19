@@ -19,7 +19,6 @@ import * as yup from "yup";
  */
 export default function ContestStart() {
   const { chain } = useNetwork();
-  const {} = useNetwork();
   const { handleError } = useError();
   const { showToastSuccess } = useToasts();
   const router = useRouter();
