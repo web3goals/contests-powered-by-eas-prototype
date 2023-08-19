@@ -19,3 +19,10 @@ export type ProfileUriData = {
     { trait_type: "instagram"; value: string }
   ];
 };
+
+export type PageMetaData = {
+  url: string | undefined;
+  title: string | undefined;
+  description: string | undefined;
+  image: string | undefined;
+};
