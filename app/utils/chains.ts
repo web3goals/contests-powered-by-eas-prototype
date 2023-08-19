@@ -8,6 +8,7 @@ interface ChainConfig {
   eas: {
     contract: `0x${string}`;
     contestSchemaUid: `0x${string}`;
+    evaluationSchemaUid: `0x${string}`;
     graphQl: string;
   };
 }
@@ -21,6 +22,7 @@ export function getSupportedChainConfigs(): ChainConfig[] {
     process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS &&
     process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS &&
     process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID &&
+    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_EVALUATION_SCHEMA_UID &&
     process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL
   ) {
     chainConfigs.push({
@@ -44,6 +46,8 @@ export function getSupportedChainConfigs(): ChainConfig[] {
           .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS as `0x${string}`,
         contestSchemaUid: process.env
           .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID as `0x${string}`,
+        evaluationSchemaUid: process.env
+          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_EVALUATION_SCHEMA_UID as `0x${string}`,
         graphQl: process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL,
       },
     });

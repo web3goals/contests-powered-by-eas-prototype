@@ -1,12 +1,15 @@
 import AccountAvatar from "@/components/account/AccountAvatar";
 import AccountLink from "@/components/account/AccountLink";
+import EvaluateDialog from "@/components/dialog/EvaluateDialog";
 import EntityList from "@/components/entity/EntityList";
 import Layout from "@/components/layout";
 import {
   CardBox,
-  ExtraLargeLoadingButton,
   FullWidthSkeleton,
+  LargeLoadingButton,
+  MediumLoadingButton,
 } from "@/components/styled";
+import { DialogContext } from "@/context/dialog";
 import { useProvider } from "@/hooks/easWagmiUtils";
 import useError from "@/hooks/useError";
 import { theme } from "@/theme";
@@ -16,17 +19,17 @@ import { EAS } from "@ethereum-attestation-service/eas-sdk";
 import {
   Avatar,
   Box,
+  Link as MuiLink,
   Stack,
   SxProps,
   Typography,
-  Link as MuiLink,
 } from "@mui/material";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { useNetwork } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 
 /**
  * Page with a contest.
@@ -99,12 +102,14 @@ export default function Contest() {
           </Stack>
           <Box display="flex" justifyContent="center" mt={3}>
             <Link href={`/contests/share/${id}`} passHref legacyBehavior>
-              <ExtraLargeLoadingButton variant="outlined">
-                Share
-              </ExtraLargeLoadingButton>
+              <LargeLoadingButton variant="outlined">Share</LargeLoadingButton>
             </Link>
           </Box>
-          <ContestParticipants contest={contest} sx={{ mt: 3 }} />
+          <ContestParticipants
+            id={id as string}
+            contest={contest}
+            sx={{ mt: 3 }}
+          />
         </>
       ) : (
         <FullWidthSkeleton />
@@ -144,13 +149,19 @@ function ContestAccount(props: { account: `0x${string}`; sx?: SxProps }) {
 }
 
 // TODO: Load all evaluations for this hackathon
-function ContestParticipants(props: { contest: Contest; sx?: SxProps }) {
+// TODO: Sort participants by earned points
+function ContestParticipants(props: {
+  id: string;
+  contest: Contest;
+  sx?: SxProps;
+}) {
   return (
     <EntityList
       entities={props.contest.participants}
       renderEntityCard={(participant, index) => (
         <ContestParticipant
           key={index}
+          id={props.id}
           participant={participant}
           judges={props.contest.judges}
           evaluations={[]}
@@ -164,11 +175,14 @@ function ContestParticipants(props: { contest: Contest; sx?: SxProps }) {
 
 // TODO: Check if connected account is judge, and check if connected account is already evaluated project or not
 function ContestParticipant(props: {
+  id: string;
   participant: string;
   judges: string[];
   evaluations: any[];
 }) {
+  const { showDialog, closeDialog } = useContext(DialogContext);
   const { handleError } = useError();
+  const { address } = useAccount();
   const [participantMetaData, setParticipantMetaData] = useState<
     PageMetaData | undefined
   >();
@@ -185,7 +199,8 @@ function ContestParticipant(props: {
     return (
       <CardBox sx={{ display: "flex", flexDirection: "row" }}>
         {/* Left part */}
-        <Box>
+        <Box sx={{ background: theme.palette.divider, borderRadius: 3 }}>
+          {/* Avatar */}
           <Avatar
             sx={{
               width: 82,
@@ -197,15 +212,46 @@ function ContestParticipant(props: {
           >
             <Typography fontSize={24}>⭐</Typography>
           </Avatar>
+          {/* Points */}
+          <Stack alignItems="center" py={1}>
+            {/* TODO: Display real points using evaluations data */}
+            <Typography fontWeight={700}>42</Typography>
+            <Typography variant="body2">Points</Typography>
+          </Stack>
         </Box>
         {/* Right part */}
         <Box width={1} ml={2} display="flex" flexDirection="column">
+          {/* Title and description */}
           <MuiLink href={props.participant} target="_blank" fontWeight={700}>
             {participantMetaData.title}
           </MuiLink>
           <Typography variant="body2">
             {participantMetaData.description?.substring(0, 128)}...
           </Typography>
+          {/* Evaluations */}
+          {/* TODO: */}
+          {/* Evaluate button */}
+          {address && props.judges.includes(address) && (
+            <MediumLoadingButton
+              variant="contained"
+              sx={{ mt: 1 }}
+              onClick={() =>
+                showDialog?.(
+                  <EvaluateDialog
+                    contest={props.id}
+                    participant={props.participant}
+                    onEvaluate={() => {
+                      // TODO: Reload participant evaluations
+                    }}
+                    onClose={closeDialog}
+                  />
+                )
+              }
+            >
+              👀 Evaluate
+            </MediumLoadingButton>
+          )}
+          {/* TODO: */}
         </Box>
       </CardBox>
     );

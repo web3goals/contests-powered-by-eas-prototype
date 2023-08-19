@@ -1,8 +1,8 @@
 import { createContext, useState } from "react";
 
 interface IDialogContext {
-  showDialog: Function;
-  closeDialog: Function;
+  showDialog: (dialog: any) => void;
+  closeDialog: () => void;
 }
 
 export const DialogContext = createContext<Partial<IDialogContext>>({});
