@@ -8,17 +8,20 @@ import {
   FullWidthSkeleton,
   LargeLoadingButton,
   MediumLoadingButton,
+  ThickDivider,
 } from "@/components/styled";
+import { EVALUATIONS } from "@/constants/evaluations";
 import { DialogContext } from "@/context/dialog";
 import { useProvider } from "@/hooks/easWagmiUtils";
 import useError from "@/hooks/useError";
 import { theme } from "@/theme";
-import { Contest, PageMetaData } from "@/types";
+import { Contest, Evaluation, PageMetaData } from "@/types";
 import { chainToSupportedChainConfig } from "@/utils/chains";
 import { EAS } from "@ethereum-attestation-service/eas-sdk";
 import {
   Avatar,
   Box,
+  Chip,
   Link as MuiLink,
   Stack,
   SxProps,
@@ -91,13 +94,16 @@ export default function Contest() {
           <Typography textAlign="center" fontWeight={700} mt={3}>
             Organized by
           </Typography>
-          <ContestAccount account={contest.organizer} sx={{ mt: 1 }} />
+          <ContestOrganizerOfJudge
+            organizerOfJudge={contest.organizer}
+            sx={{ mt: 1 }}
+          />
           <Typography textAlign="center" fontWeight={700} mt={3}>
             Judged by
           </Typography>
           <Stack spacing={1} mt={1}>
             {contest.judges.map((judge, index) => (
-              <ContestAccount key={index} account={judge} />
+              <ContestOrganizerOfJudge key={index} organizerOfJudge={judge} />
             ))}
           </Stack>
           <Box display="flex" justifyContent="center" mt={3}>
@@ -118,12 +124,15 @@ export default function Contest() {
   );
 }
 
-function ContestAccount(props: { account: `0x${string}`; sx?: SxProps }) {
+function ContestOrganizerOfJudge(props: {
+  organizerOfJudge: `0x${string}`;
+  sx?: SxProps;
+}) {
   /**
-   * Define account profile uri data
+   * Define profile uri data
    */
   // TODO: Implement
-  const accountProfileUriData = undefined;
+  const organizerOrJudgeProfileUriData = undefined;
 
   return (
     <Stack
@@ -136,20 +145,18 @@ function ContestAccount(props: { account: `0x${string}`; sx?: SxProps }) {
       <AccountAvatar
         size={24}
         emojiSize={12}
-        account={props.account}
-        accountProfileUriData={accountProfileUriData}
+        account={props.organizerOfJudge}
+        accountProfileUriData={organizerOrJudgeProfileUriData}
       />
       <AccountLink
-        account={props.account}
-        accountProfileUriData={accountProfileUriData}
+        account={props.organizerOfJudge}
+        accountProfileUriData={organizerOrJudgeProfileUriData}
         variant="body1"
       />
     </Stack>
   );
 }
 
-// TODO: Load all evaluations for this hackathon
-// TODO: Sort participants by earned points
 function ContestParticipants(props: {
   id: string;
   contest: Contest;
@@ -173,7 +180,6 @@ function ContestParticipants(props: {
   );
 }
 
-// TODO: Check if connected account is judge, and check if connected account is already evaluated project or not
 function ContestParticipant(props: {
   id: string;
   participant: string;
@@ -181,11 +187,74 @@ function ContestParticipant(props: {
   evaluations: any[];
 }) {
   const { showDialog, closeDialog } = useContext(DialogContext);
+  const { chain } = useNetwork();
   const { handleError } = useError();
   const { address } = useAccount();
   const [participantMetaData, setParticipantMetaData] = useState<
     PageMetaData | undefined
   >();
+  const [participantEvaluations, setParticipantEvaluations] = useState<
+    Evaluation[] | undefined
+  >();
+  const [participantPoints, setParticipantPoints] = useState<
+    number | undefined
+  >();
+  const [isParticipantEvaluated, setIsParticipantEvaluated] = useState<
+    boolean | undefined
+  >();
+
+  async function loadEvaluations() {
+    try {
+      setParticipantEvaluations(undefined);
+      setParticipantPoints(undefined);
+      setIsParticipantEvaluated(undefined);
+      // Prepare query for EAS
+      const schemaId =
+        chainToSupportedChainConfig(chain).eas.evaluationSchemaUid;
+      const query = `
+        query Attestations {
+          attestations(where: { schemaId: {equals: "${schemaId}"}, decodedDataJson: {contains: "${props.participant}"} }) {
+            id
+            attester
+            timeCreated
+            decodedDataJson
+          }
+        }
+      `;
+      // Send query to EAS
+      const { data } = await axios.post(
+        chainToSupportedChainConfig(chain).eas.graphQl as string,
+        { query: query }
+      );
+      // Parse response data and define states
+      const evaluations: Evaluation[] = [];
+      let points = 0;
+      let isEvaluated = false;
+      for (const attestation of data.data.attestations) {
+        const attestationData = JSON.parse(attestation.decodedDataJson);
+        const evaluation: Evaluation = {
+          judge: attestation.attester,
+          time: attestation.timeCreated,
+          contest: attestationData[0].value.value,
+          participant: attestationData[1].value.value,
+          tags: attestationData[2].value.value,
+          points: attestationData[3].value.value,
+          comment: attestationData[4].value.value,
+        };
+        evaluations.push(evaluation);
+        points += evaluation.points;
+        if (evaluation.judge === address) {
+          isEvaluated = true;
+        }
+      }
+      // Update states
+      setParticipantEvaluations(evaluations);
+      setParticipantPoints(points);
+      setIsParticipantEvaluated(isEvaluated);
+    } catch (error: any) {
+      handleError(error, true);
+    }
+  }
 
   useEffect(() => {
     axios
@@ -195,9 +264,16 @@ function ContestParticipant(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.participant]);
 
-  if (participantMetaData) {
+  useEffect(() => {
+    loadEvaluations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.participant, address]);
+
+  if (participantMetaData && participantEvaluations) {
     return (
-      <CardBox sx={{ display: "flex", flexDirection: "row" }}>
+      <CardBox
+        sx={{ display: "flex", flexDirection: "row", alignItems: "flex-start" }}
+      >
         {/* Left part */}
         <Box sx={{ background: theme.palette.divider, borderRadius: 3 }}>
           {/* Avatar */}
@@ -213,14 +289,21 @@ function ContestParticipant(props: {
             <Typography fontSize={24}>⭐</Typography>
           </Avatar>
           {/* Points */}
-          <Stack alignItems="center" py={1}>
-            {/* TODO: Display real points using evaluations data */}
-            <Typography fontWeight={700}>42</Typography>
-            <Typography variant="body2">Points</Typography>
-          </Stack>
+          {participantPoints !== undefined && (
+            <Stack alignItems="center" py={1}>
+              <Typography fontWeight={700}>{participantPoints}</Typography>
+              <Typography variant="body2">Points</Typography>
+            </Stack>
+          )}
         </Box>
         {/* Right part */}
-        <Box width={1} ml={2} display="flex" flexDirection="column">
+        <Box
+          width={1}
+          ml={3}
+          display="flex"
+          flexDirection="column"
+          alignItems="flex-start"
+        >
           {/* Title and description */}
           <MuiLink href={props.participant} target="_blank" fontWeight={700}>
             {participantMetaData.title}
@@ -228,34 +311,87 @@ function ContestParticipant(props: {
           <Typography variant="body2">
             {participantMetaData.description?.substring(0, 128)}...
           </Typography>
-          {/* Evaluations */}
-          {/* TODO: */}
           {/* Evaluate button */}
-          {address && props.judges.includes(address) && (
-            <MediumLoadingButton
-              variant="contained"
-              sx={{ mt: 1 }}
-              onClick={() =>
-                showDialog?.(
-                  <EvaluateDialog
-                    contest={props.id}
-                    participant={props.participant}
-                    onEvaluate={() => {
-                      // TODO: Reload participant evaluations
-                    }}
-                    onClose={closeDialog}
-                  />
-                )
-              }
-            >
-              👀 Evaluate
-            </MediumLoadingButton>
-          )}
-          {/* TODO: */}
+          {address &&
+            props.judges.includes(address) &&
+            isParticipantEvaluated === false && (
+              <MediumLoadingButton
+                variant="contained"
+                sx={{ mt: 2 }}
+                onClick={() =>
+                  showDialog?.(
+                    <EvaluateDialog
+                      contest={props.id}
+                      participant={props.participant}
+                      onEvaluate={() => loadEvaluations()}
+                      onClose={closeDialog}
+                    />
+                  )
+                }
+              >
+                👀 Evaluate
+              </MediumLoadingButton>
+            )}
+          {participantEvaluations.length > 0 && <ThickDivider sx={{ mt: 3 }} />}
+          {/* Evaluations */}
+          <Stack spacing={3} mt={3}>
+            {participantEvaluations.map((evaluation, index) => (
+              <ContestParticipantEvaluation
+                key={index}
+                evaluation={evaluation}
+              />
+            ))}
+          </Stack>
         </Box>
       </CardBox>
     );
   }
 
   return <FullWidthSkeleton />;
+}
+
+function ContestParticipantEvaluation(props: { evaluation: Evaluation }) {
+  /**
+   * Define profile uri data
+   */
+  // TODO: Implement
+  const judgeProfileUriData = undefined;
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "row" }}>
+      {/* Left part */}
+      <Box>
+        <AccountAvatar
+          size={36}
+          emojiSize={18}
+          account={props.evaluation.judge}
+          accountProfileUriData={judgeProfileUriData}
+        />
+      </Box>
+      {/* Right part */}
+      <Box
+        width={1}
+        ml={1}
+        display="flex"
+        flexDirection="column"
+        alignItems="flex-start"
+      >
+        <AccountLink
+          account={props.evaluation.judge}
+          accountProfileUriData={judgeProfileUriData}
+        />
+        <Typography variant="body2" color="text.secondary">
+          {new Date(props.evaluation.time).toLocaleString()}
+        </Typography>
+        {props.evaluation.comment && (
+          <Typography variant="body2" mt={1}>
+            {props.evaluation.comment}
+          </Typography>
+        )}
+        {props.evaluation.tags.map((tag, index) => (
+          <Chip key={index} label={EVALUATIONS[tag]} sx={{ mt: 1 }} />
+        ))}
+      </Box>
+    </Box>
+  );
 }

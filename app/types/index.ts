@@ -6,6 +6,16 @@ export type Contest = {
   participants: string[];
 };
 
+export type Evaluation = {
+  judge: `0x${string}`;
+  time: number;
+  contest: `0x${string}`;
+  participant: string;
+  tags: string[];
+  points: number;
+  comment: string;
+};
+
 export type ProfileUriData = {
   name: string;
   image: string;
