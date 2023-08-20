@@ -1,3 +1,4 @@
+import { EVALUATIONS } from "@/constants/evaluations";
 import { useSigner } from "@/hooks/easWagmiUtils";
 import useError from "@/hooks/useError";
 import useToasts from "@/hooks/useToast";
@@ -158,54 +159,17 @@ export default function EvaluateDialog(props: {
               <FormikHelper onChange={(values: any) => setFormValues(values)} />
               {/* Tags */}
               <FormGroup sx={{ mt: 2 }}>
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="🦄 Presentation (+5 points)"
-                  name="tags"
-                  value="PRESENTATION_5"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="🚀 Potential Impact (+5 points)"
-                  name="tags"
-                  value="POTENTIAL_IMPACT_5"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="💡 Creativity (+5 points)"
-                  name="tags"
-                  value="CREATIVITY_5"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="🤯 Difficulty (+5 points)"
-                  name="tags"
-                  value="DIFFICULTY_5"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="✨ Open Source (+3 points)"
-                  name="tags"
-                  value="OPEN_SOURCE_3"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
-                <FormControlLabel
-                  control={<Checkbox />}
-                  label="📄 Documentation (+3 points)"
-                  name="tags"
-                  value="DOCUMENTATION_3"
-                  onChange={handleChange}
-                  disabled={isFormSubmitting}
-                />
+                {Object.keys(EVALUATIONS).map((key, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={<Checkbox />}
+                    label={EVALUATIONS[key]}
+                    name="tags"
+                    value={key}
+                    onChange={handleChange}
+                    disabled={isFormSubmitting}
+                  />
+                ))}
               </FormGroup>
               {/* Comment */}
               <TextField
