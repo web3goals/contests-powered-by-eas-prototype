@@ -77,7 +77,7 @@ export default function EvaluateDialog(props: {
       eas.connect(signer);
       // Prepare data
       const schemaEncoder = new SchemaEncoder(
-        "bytes32 contest,string project,string[] tags,uint8 points,string comment"
+        "bytes32 contest,string participant,string[] tags,uint8 points,string comment"
       );
       const encodedData = schemaEncoder.encodeData([
         {
@@ -86,7 +86,7 @@ export default function EvaluateDialog(props: {
           type: "bytes32",
         },
         {
-          name: "project",
+          name: "participant",
           value: props.participant,
           type: "string",
         },

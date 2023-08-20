@@ -1,4 +1,4 @@
-import { Chain, sepolia } from "wagmi/chains";
+import { baseGoerli, Chain } from "wagmi/chains";
 
 interface ChainConfig {
   chain: Chain;
@@ -19,36 +19,36 @@ interface ChainConfig {
 export function getSupportedChainConfigs(): ChainConfig[] {
   const chainConfigs: ChainConfig[] = [];
   if (
-    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS &&
-    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS &&
-    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID &&
-    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_EVALUATION_SCHEMA_UID &&
-    process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL
+    process.env.NEXT_PUBLIC_BASE_GOERLI_PROFILE_CONTRACT_ADDRESS &&
+    process.env.NEXT_PUBLIC_BASE_GOERLI_EAS_CONTRACT_ADDRESS &&
+    process.env.NEXT_PUBLIC_BASE_GOERLI_EAS_CONTEST_SCHEMA_UID &&
+    process.env.NEXT_PUBLIC_BASE_GOERLI_EAS_EVALUATION_SCHEMA_UID &&
+    process.env.NEXT_PUBLIC_BASE_GOERLI_EAS_GRAPH_QL
   ) {
     chainConfigs.push({
       chain: {
-        ...sepolia,
+        ...baseGoerli,
         rpcUrls: {
           default: {
-            http: ["https://eth-sepolia.public.blastapi.io"],
+            http: ["https://base-goerli.public.blastapi.io"],
           },
           public: {
-            http: ["https://eth-sepolia.public.blastapi.io"],
+            http: ["https://base-goerli.public.blastapi.io"],
           },
         },
       },
       contracts: {
         profile: process.env
-          .NEXT_PUBLIC_SEPOLIA_TESTNET_PROFILE_CONTRACT_ADDRESS as `0x${string}`,
+          .NEXT_PUBLIC_BASE_GOERLI_PROFILE_CONTRACT_ADDRESS as `0x${string}`,
       },
       eas: {
         contract: process.env
-          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTRACT_ADDRESS as `0x${string}`,
+          .NEXT_PUBLIC_BASE_GOERLI_EAS_CONTRACT_ADDRESS as `0x${string}`,
         contestSchemaUid: process.env
-          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_CONTEST_SCHEMA_UID as `0x${string}`,
+          .NEXT_PUBLIC_BASE_GOERLI_EAS_CONTEST_SCHEMA_UID as `0x${string}`,
         evaluationSchemaUid: process.env
-          .NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_EVALUATION_SCHEMA_UID as `0x${string}`,
-        graphQl: process.env.NEXT_PUBLIC_SEPOLIA_TESTNET_EAS_GRAPH_QL,
+          .NEXT_PUBLIC_BASE_GOERLI_EAS_EVALUATION_SCHEMA_UID as `0x${string}`,
+        graphQl: process.env.NEXT_PUBLIC_BASE_GOERLI_EAS_GRAPH_QL,
       },
     });
   }
