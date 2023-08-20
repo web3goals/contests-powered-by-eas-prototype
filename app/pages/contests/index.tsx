@@ -101,9 +101,11 @@ function ContestCard(props: { contest: Contest }) {
         spacing={1}
         mt={2}
       >
-        <Typography fontWeight={700}>by</Typography>
+        <Typography fontWeight={700} variant="body2">
+          Organized by
+        </Typography>
         <AccountAvatar
-          size={24}
+          size={28}
           emojiSize={12}
           account={props.contest.organizer}
           accountProfileUriData={organizerProfileUriData}
@@ -111,7 +113,6 @@ function ContestCard(props: { contest: Contest }) {
         <AccountLink
           account={props.contest.organizer}
           accountProfileUriData={organizerProfileUriData}
-          variant="body1"
         />
       </Stack>
       <Stack direction="row" spacing={2} mt={2}>
