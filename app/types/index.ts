@@ -1,4 +1,6 @@
 export type Contest = {
+  id: `0x${string}`;
+  time: number;
   organizer: `0x${string}`;
   title: string;
   description: string;

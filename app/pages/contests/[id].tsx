@@ -67,6 +67,8 @@ export default function Contest() {
             attestation.data as `0x${string}`
           );
           setContest({
+            id: attestation.uid as `0x${string}`,
+            time: Number(attestation.time),
             organizer: attestation.attester as `0x${string}`,
             title: decodedData[0],
             description: decodedData[1],
@@ -171,7 +173,6 @@ function ContestParticipants(props: {
           id={props.id}
           participant={participant}
           judges={props.contest.judges}
-          evaluations={[]}
         />
       )}
       noEntitiesText="😐 no participants"
@@ -184,7 +185,6 @@ function ContestParticipant(props: {
   id: string;
   participant: string;
   judges: string[];
-  evaluations: any[];
 }) {
   const { showDialog, closeDialog } = useContext(DialogContext);
   const { chain } = useNetwork();
@@ -213,7 +213,7 @@ function ContestParticipant(props: {
         chainToSupportedChainConfig(chain).eas.evaluationSchemaUid;
       const query = `
         query Attestations {
-          attestations(where: { schemaId: {equals: "${schemaId}"}, decodedDataJson: {contains: "${props.participant}"} }) {
+          attestations(where: { schemaId: {equals: "${schemaId}"}, decodedDataJson: {contains: "${props.participant}"} }, orderBy: {timeCreated: desc}) {
             id
             attester
             timeCreated
@@ -241,6 +241,9 @@ function ContestParticipant(props: {
           points: attestationData[3].value.value,
           comment: attestationData[4].value.value,
         };
+        if (evaluation.contest !== props.id) {
+          continue;
+        }
         evaluations.push(evaluation);
         points += evaluation.points;
         if (evaluation.judge === address) {
@@ -381,7 +384,7 @@ function ContestParticipantEvaluation(props: { evaluation: Evaluation }) {
           accountProfileUriData={judgeProfileUriData}
         />
         <Typography variant="body2" color="text.secondary">
-          {new Date(props.evaluation.time).toLocaleString()}
+          {new Date(props.evaluation.time * 1000).toLocaleString()}
         </Typography>
         {props.evaluation.comment && (
           <Typography variant="body2" mt={1}>
