@@ -12,8 +12,10 @@ import {
 } from "@/components/styled";
 import { EVALUATIONS } from "@/constants/evaluations";
 import { DialogContext } from "@/context/dialog";
+import { profileContractAbi } from "@/contracts/abi/profileContract";
 import { useProvider } from "@/hooks/easWagmiUtils";
 import useError from "@/hooks/useError";
+import useUriDataLoader from "@/hooks/useUriDataLoader";
 import { theme } from "@/theme";
 import { Contest, Evaluation, PageMetaData } from "@/types";
 import { chainToSupportedChainConfig } from "@/utils/chains";
@@ -28,11 +30,12 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
+import { chain } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { useAccount, useNetwork } from "wagmi";
+import { useAccount, useContractRead, useNetwork } from "wagmi";
 
 /**
  * Page with a contest.
@@ -130,11 +133,19 @@ function ContestOrganizerOfJudge(props: {
   organizerOfJudge: `0x${string}`;
   sx?: SxProps;
 }) {
+  const { chain } = useNetwork();
+
   /**
    * Define profile uri data
    */
-  // TODO: Implement
-  const organizerOrJudgeProfileUriData = undefined;
+  const { data: organizerOrJudge } = useContractRead({
+    address: chainToSupportedChainConfig(chain).contracts.profile,
+    abi: profileContractAbi,
+    functionName: "getURI",
+    args: [props.organizerOfJudge],
+  });
+  const { data: organizerOrJudgeProfileUriData } =
+    useUriDataLoader(organizerOrJudge);
 
   return (
     <Stack
@@ -145,7 +156,7 @@ function ContestOrganizerOfJudge(props: {
       sx={{ ...props.sx }}
     >
       <AccountAvatar
-        size={24}
+        size={28}
         emojiSize={12}
         account={props.organizerOfJudge}
         accountProfileUriData={organizerOrJudgeProfileUriData}
@@ -354,18 +365,25 @@ function ContestParticipant(props: {
 }
 
 function ContestParticipantEvaluation(props: { evaluation: Evaluation }) {
+  const { chain } = useNetwork();
+
   /**
    * Define profile uri data
    */
-  // TODO: Implement
-  const judgeProfileUriData = undefined;
+  const { data: judgeProfileUri } = useContractRead({
+    address: chainToSupportedChainConfig(chain).contracts.profile,
+    abi: profileContractAbi,
+    functionName: "getURI",
+    args: [props.evaluation.judge],
+  });
+  const { data: judgeProfileUriData } = useUriDataLoader(judgeProfileUri);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "row" }}>
       {/* Left part */}
       <Box>
         <AccountAvatar
-          size={36}
+          size={42}
           emojiSize={18}
           account={props.evaluation.judge}
           accountProfileUriData={judgeProfileUriData}
@@ -374,7 +392,7 @@ function ContestParticipantEvaluation(props: { evaluation: Evaluation }) {
       {/* Right part */}
       <Box
         width={1}
-        ml={1}
+        ml={1.5}
         display="flex"
         flexDirection="column"
         alignItems="flex-start"

@@ -3,14 +3,16 @@ import AccountLink from "@/components/account/AccountLink";
 import EntityList from "@/components/entity/EntityList";
 import Layout from "@/components/layout";
 import { CardBox, FullWidthSkeleton } from "@/components/styled";
+import { profileContractAbi } from "@/contracts/abi/profileContract";
 import useError from "@/hooks/useError";
+import useUriDataLoader from "@/hooks/useUriDataLoader";
 import { Contest } from "@/types";
 import { chainToSupportedChainConfig } from "@/utils/chains";
 import { Typography, Link as MuiLink, Stack } from "@mui/material";
 import axios from "axios";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useNetwork } from "wagmi";
+import { useContractRead, useNetwork } from "wagmi";
 
 /**
  * Page to with contests.
@@ -76,11 +78,19 @@ export default function Contests() {
 }
 
 function ContestCard(props: { contest: Contest }) {
+  const { chain } = useNetwork();
+
   /**
    * Define profile uri data
    */
-  // TODO: Implement
-  const organizerProfileUriData = undefined;
+  const { data: organizerProfileUri } = useContractRead({
+    address: chainToSupportedChainConfig(chain).contracts.profile,
+    abi: profileContractAbi,
+    functionName: "getURI",
+    args: [props.contest.organizer],
+  });
+  const { data: organizerProfileUriData } =
+    useUriDataLoader(organizerProfileUri);
 
   return (
     <CardBox

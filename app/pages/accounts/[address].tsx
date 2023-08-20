@@ -1,4 +1,7 @@
+import AccountProfile from "@/components/account/AccountProfile";
 import Layout from "@/components/layout";
+import { FullWidthSkeleton } from "@/components/styled";
+import { Container } from "@mui/material";
 import { useRouter } from "next/router";
 
 /**
@@ -8,5 +11,13 @@ export default function Account() {
   const router = useRouter();
   const { address } = router.query;
 
-  return <Layout maxWidth="sm">...</Layout>;
+  return (
+    <Layout maxWidth="sm">
+      {address ? (
+        <AccountProfile address={address as `0x${string}`} />
+      ) : (
+        <FullWidthSkeleton />
+      )}
+    </Layout>
+  );
 }
