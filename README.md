@@ -14,7 +14,7 @@ Organize contests valuable for everyone, not just the winners.
 
 ## ✨ About
 
-The number of web3 online hackathons is growing every year. But their main problem is that most often the participants don't get any feedback from the judges that could help them get better. Only the winners get awards and some attention.
+The number of web3 online hackathons is growing every year. But the main problem is that most often the participants don't get any feedback from the judges that could help them get better. Only the winners get awards and some attention.
 
 So, most of the participants become sad and unhappy. They wasted their time. And they lose motivation to participate in such events anymore.
 
